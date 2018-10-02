@@ -336,14 +336,13 @@ pred-ℤ (inr (inr (succ-ℕ x))) = inr (inr x)
 
 -- Exercise 3.12
 add-ℤ : ℤ → ℤ → ℤ
-add-ℤ (inl x) (inl x₁) = inl (add-ℕ x x₁) --adding negatives
-add-ℤ x (inr (inl x₁)) = x -- adding zero-ℤ
-add-ℤ (inr (inl x₁)) x = x
-add-ℤ (inl zero-ℕ) (inr (inr x₁)) = pred-ℤ (inr (inr x₁)) --subtracting one is pred-ℤ
-add-ℤ (inl (succ-ℕ x)) (inr (inr x₁)) = pred-ℤ (add-ℤ (inr (inr x₁)) (inl x) ) -- I swap the arguments here out of preference in case we subtract large magnitude from small it should stop as quickly as possible when computing the normal form...
-add-ℤ (inr (inr x₁)) (inl zero-ℕ) = pred-ℤ (inr (inr x₁))
-add-ℤ (inr (inr x₁)) (inl (succ-ℕ x)) = pred-ℤ (add-ℤ (inl x) (inr (inr x₁))) -- I swap them here to cooperate with the reason above
-add-ℤ (inr (inr n)) (inr (inr m)) = inr (inr (add-ℕ n m))
+add-ℤ (inl zero-ℕ) y = pred-ℤ y
+add-ℤ (inl (succ-ℕ x)) y = pred-ℤ (add-ℤ (inl x) y)
+add-ℤ (inr (inl star)) y = y
+add-ℤ (inr (inr zero-ℕ)) y = succ-ℤ y
+add-ℤ (inr (inr (succ-ℕ x))) y = succ-ℤ (add-ℤ (inr (inr x)) y)
+-- add-ℤ (inr (inr x₁)) (inl zero-ℕ) = pred-ℤ (inr (inr x₁))
+-- add-ℤ (inr (inr x₁)) (inl (succ-ℕ x)) = pred-ℤ (add-ℤ (inr (inr x₁)) (inl x)) -- I swap them here to cooperate with the reason above
 
 -- todo: test out the above by computing some normal forms
 
