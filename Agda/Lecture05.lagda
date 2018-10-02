@@ -228,298 +228,328 @@ is-equiv-eq-pair-triv s t =
 
 -- Exercise 5.1
 element : {i : Level} {A : UU i} → A → unit → A
-element a star = {!!}
+element a star = a
 
 htpy-element-constant : {i : Level} {A : UU i} (a : A) →
   (element a) ~ (const unit A a)
-htpy-element-constant a star = {!!}
+htpy-element-constant a star = refl
 
 -- Exercise 5.2
 ap-const : {i j : Level} {A : UU i} {B : UU j} (b : B) (x y : A) →
   (ap (const A B b) {x} {y}) ~ const (Id x y) (Id b b) refl
-ap-const b x .x refl = {!!}
+ap-const b x .x refl = refl -- we know that ap (const A B b) _ is b = b but we have to apply path induction to invoke the computation rule anyway
 
 -- Exercise 5.3
 inv-inv : {i : Level} {A : UU i} {x y : A} (p : Id x y) → Id (inv (inv p)) p
-inv-inv refl = {!!}
+inv-inv refl = refl
 
 is-equiv-inv : {i : Level} {A : UU i} (x y : A) →
   is-equiv (λ (p : Id x y) → inv p)
-is-equiv-inv x y = {!!}
+is-equiv-inv x y = pair ((dpair inv inv-inv)) (dpair inv inv-inv)
 
 inv-concat : {i : Level} {A : UU i} {x y : A} (p : Id x y) (z : A) →
   (Id x z) → (Id y z)
-inv-concat p z q = {!!}
+inv-concat p z q = concat _ (inv p) q
 
 left-inv-inv-concat : {i : Level} {A : UU i} {x y : A} (p : Id x y) (z : A) →
   ((inv-concat p z) ∘ (concat y {z} p)) ~ id
-left-inv-inv-concat refl z q = {!!}
+left-inv-inv-concat refl z q = refl
 
 right-inv-inv-concat : {i : Level} {A : UU i} {x y : A} (p : Id x y) (z : A) →
   ((concat y {z} p) ∘ (inv-concat p z)) ~ id
-right-inv-inv-concat refl z refl = {!!}
+right-inv-inv-concat refl z q = refl
 
 is-equiv-concat : {i : Level} {A : UU i} {x y : A} (p : Id x y) (z : A) →
   is-equiv (concat y {z} p)
-is-equiv-concat p z = {!!}
+is-equiv-concat p z = pair (dpair (inv-concat p z) (right-inv-inv-concat p z)) (dpair (inv-concat p z) (left-inv-inv-concat p z))
 
 inv-tr : {i j : Level} {A : UU i} (B : A → UU j) {x y : A} →
   Id x y → B y → B x
-inv-tr B p = {!!}
+inv-tr B refl = id
 
 left-inv-inv-tr : {i j : Level} {A : UU i} (B : A → UU j) {x y : A}
   (p : Id x y) → ((inv-tr B p ) ∘ (tr B p)) ~ id
-left-inv-inv-tr B refl b = {!!}
+left-inv-inv-tr B refl b = refl
 
 right-inv-inv-tr : {i j : Level} {A : UU i} (B : A → UU j) {x y : A}
   (p : Id x y) → ((tr B p) ∘ (inv-tr B p)) ~ id
-right-inv-inv-tr B refl b = {!!}
+right-inv-inv-tr B refl b = refl
 
 is-equiv-tr : {i j : Level} {A : UU i} (B : A → UU j) {x y : A}
   (p : Id x y) → is-equiv (tr B p)
-is-equiv-tr B p = {!!}
+is-equiv-tr B p =  pair (dpair (inv-tr B p) (right-inv-inv-tr B p)) (dpair (inv-tr B p) (left-inv-inv-tr B p))
 
 -- Exercise 5.4
 is-equiv-htpy : {i j : Level} {A : UU i} {B : UU j} {f g : A → B} →
   f ~ g → is-equiv g → is-equiv f
-is-equiv-htpy H (dpair (dpair gs issec) (dpair gr isretr)) = {!!}
+is-equiv-htpy H (dpair (dpair gs issec) (dpair gr isretr)) =
+  pair
+    (dpair gs (htpy-concat _ (htpy-right-whisk H gs) issec))
+    (dpair gr (htpy-concat _ (htpy-left-whisk gr H)  isretr))
 
 -- Exercise 5.5
 section-comp : {i j k : Level} {A : UU i} {B : UU j} {X : UU k}
   (f : A → X) (g : B → X) (h : A → B) (H : f ~ (g ∘ h)) →
   sec h → sec f → sec g
-section-comp f g h H (dpair sh sh-issec) (dpair sf sf-issec) = {!!}
+section-comp f g h H (dpair sh sh-issec) (dpair sf sf-issec) = dpair (h ∘ sf) (htpy-concat _ (htpy-right-whisk (htpy-inv H) sf) sf-issec)
 
 section-comp' : {i j k : Level} {A : UU i} {B : UU j} {X : UU k}
   (f : A → X) (g : B → X) (h : A → B) (H : f ~ (g ∘ h)) →
   sec h → sec g → sec f
-section-comp' f g h H (dpair sh sh-issec) (dpair sg sg-issec) = {!!}
+section-comp' f g h H (dpair sh sh-issec) (dpair sg sg-issec) =
+  dpair
+    (sh ∘ sg)
+    (htpy-concat _ (htpy-right-whisk H (sh ∘ sg)) (htpy-concat _ (htpy-left-whisk g (htpy-right-whisk sh-issec sg) ) (sg-issec)))
 
 retraction-comp : {i j k : Level} {A : UU i} {B : UU j} {X : UU k}
   (f : A → X) (g : B → X) (h : A → B) (H : f ~ (g ∘ h)) →
   retr g → retr f → retr h
-retraction-comp f g h H (dpair rg rg-isretr) (dpair rf rf-isretr) = {!!}
+retraction-comp f g h H (dpair rg rg-isretr) (dpair rf rf-isretr) =
+  dpair (rf ∘ g) (htpy-concat _ (htpy-left-whisk rf (htpy-inv H)) ( rf-isretr ))
 
 retraction-comp' : {i j k : Level} {A : UU i} {B : UU j} {X : UU k}
   (f : A → X) (g : B → X) (h : A → B) (H : f ~ (g ∘ h)) →
   retr g → retr h → retr f
-retraction-comp' f g h H (dpair rg rg-isretr) (dpair rh rh-isretr) = {!!}
+retraction-comp' f g h H (dpair rg rg-isretr) (dpair rh rh-isretr) =
+  dpair
+    (rh ∘ rg)
+    (htpy-concat _
+      (htpy-left-whisk
+        (rh ∘ rg) H)
+        (htpy-concat _ (htpy-left-whisk rh (htpy-right-whisk rg-isretr h))
+       rh-isretr))
 
 is-equiv-comp : {i j k : Level} {A : UU i} {B : UU j} {X : UU k}
   (f : A → X) (g : B → X) (h : A → B) (H : f ~ (g ∘ h)) →
   is-equiv h → is-equiv g → is-equiv f
-is-equiv-comp f g h H (dpair (dpair hs hs-issec) (dpair hr hr-isretr))
-  (dpair (dpair gs gs-issec) (dpair gr gr-isretr)) = {!!}
+is-equiv-comp f g h H (dpair hsec hretr) (dpair gsec gretr )=
+  pair
+    (section-comp' f g h H hsec gsec)
+    (retraction-comp' f g h H gretr hretr)
 
 is-equiv-left-factor : {i j k : Level} {A : UU i} {B : UU j} {X : UU k}
   (f : A → X) (g : B → X) (h : A → B) (H : f ~ (g ∘ h)) →
   is-equiv f → is-equiv h → is-equiv g
-is-equiv-left-factor f g h H
-  ( dpair (dpair sf sf-issec) (dpair rf rf-isretr))
-  ( dpair (dpair sh sh-issec) (dpair rh rh-isretr)) = {!!}
+is-equiv-left-factor f g h H f-is-equiv h-is-equiv = is-equiv-comp g f (inv-is-equiv h-is-equiv) (htpy-concat _ (htpy-left-whisk g (htpy-inv (pr1 (pr2 (is-invertible-is-equiv h-is-equiv))))) (htpy-concat _ (λ x → refl) (htpy-right-whisk (htpy-inv H) (inv-is-equiv h-is-equiv)))) (is-equiv-inv-is-equiv h-is-equiv) f-is-equiv
 
 is-equiv-right-factor : {i j k : Level} {A : UU i} {B : UU j} {X : UU k}
   (f : A → X) (g : B → X) (h : A → B) (H : f ~ (g ∘ h)) →
   is-equiv g → is-equiv f → is-equiv h
-is-equiv-right-factor f g h H
-  ( dpair (dpair sg sg-issec) (dpair rg rg-isretr))
-  ( dpair (dpair sf sf-issec) (dpair rf rf-isretr)) = {!!}
+is-equiv-right-factor f g h H g-is-equiv f-is-equiv = is-equiv-comp h (inv-is-equiv g-is-equiv) f (htpy-concat _ (htpy-right-whisk (htpy-inv (pr2 (pr2 (is-invertible-is-equiv g-is-equiv)))) h) (htpy-concat _ (λ x → refl) (htpy-left-whisk (inv-is-equiv g-is-equiv) (htpy-inv H)))) f-is-equiv (is-equiv-inv-is-equiv g-is-equiv)
+  -- ( dpair (dpair sg sg-issec) (dpair rg rg-isretr))
+  -- ( dpair (dpair sf sf-issec) (dpair rf rf-isretr)) = {!!}
 
 -- Exercise 5.6
 neg-𝟚 : bool → bool
-neg-𝟚 true = {!!}
-neg-𝟚 false = {!!}
+neg-𝟚 true = false
+neg-𝟚 false = true
 
 neg-neg-𝟚 : (neg-𝟚 ∘ neg-𝟚) ~ id
-neg-neg-𝟚 true = {!!}
-neg-neg-𝟚 false = {!!}
+neg-neg-𝟚 true = refl
+neg-neg-𝟚 false = refl
 
 is-equiv-neg-𝟚 : is-equiv neg-𝟚
-is-equiv-neg-𝟚 = {!!}
+is-equiv-neg-𝟚 = pair (dpair neg-𝟚 neg-neg-𝟚) ((dpair neg-𝟚 neg-neg-𝟚))
 
 not-true-is-false : ¬ (Id true false)
-not-true-is-false p = {!!}
-    
+not-true-is-false () -- this is called an absurd pattern in agda, and it is how you define a function from a type which is empty
+
 not-equiv-const : (b : bool) → ¬ (is-equiv (const bool bool b))
-not-equiv-const true (dpair (dpair s issec) (dpair r isretr)) = {!!}
-not-equiv-const false (dpair (dpair s issec) (dpair r isretr)) = {!!}
+not-equiv-const true (dpair (dpair s issec) (dpair r isretr)) = not-true-is-false (issec false)
+not-equiv-const false (dpair (dpair s issec) (dpair r isretr)) = not-true-is-false ((htpy-inv issec) true)
 
 -- Exercise 5.7
 
 left-inverse-pred-ℤ : (k : ℤ) → Id (pred-ℤ (succ-ℤ k)) k
-left-inverse-pred-ℤ (inl zero-ℕ) = {!!}
-left-inverse-pred-ℤ (inl (succ-ℕ x)) = {!!}
-left-inverse-pred-ℤ (inr (inl star)) = {!!}
-left-inverse-pred-ℤ (inr (inr zero-ℕ)) = {!!}
-left-inverse-pred-ℤ (inr (inr (succ-ℕ x))) = {!!}
+left-inverse-pred-ℤ (inl zero-ℕ) = refl
+left-inverse-pred-ℤ (inl (succ-ℕ x)) = refl
+left-inverse-pred-ℤ (inr (inl star)) = refl
+left-inverse-pred-ℤ (inr (inr zero-ℕ)) = refl
+left-inverse-pred-ℤ (inr (inr (succ-ℕ x))) = refl
 
 right-inverse-pred-ℤ : (k : ℤ) → Id (succ-ℤ (pred-ℤ k)) k
-right-inverse-pred-ℤ (inl zero-ℕ) = {!!}
-right-inverse-pred-ℤ (inl (succ-ℕ x)) = {!!}
-right-inverse-pred-ℤ (inr (inl star)) = {!!}
-right-inverse-pred-ℤ (inr (inr zero-ℕ)) = {!!}
-right-inverse-pred-ℤ (inr (inr (succ-ℕ x))) = {!!}
+right-inverse-pred-ℤ (inl zero-ℕ) = refl
+right-inverse-pred-ℤ (inl (succ-ℕ x)) = refl
+right-inverse-pred-ℤ (inr (inl star)) = refl
+right-inverse-pred-ℤ (inr (inr zero-ℕ)) = refl
+right-inverse-pred-ℤ (inr (inr (succ-ℕ x))) = refl
 
 is-equiv-succ-ℤ : is-equiv succ-ℤ
-is-equiv-succ-ℤ = {!!}
+is-equiv-succ-ℤ = pair (dpair pred-ℤ right-inverse-pred-ℤ) (dpair pred-ℤ left-inverse-pred-ℤ)
 
 -- Exercise 5.8
 swap-coprod : {i j : Level} (A : UU i) (B : UU j) → coprod A B → coprod B A
-swap-coprod A B (inl x) = {!!}
-swap-coprod A B (inr x) = {!!}
+swap-coprod A B (inl x) = inr x
+swap-coprod A B (inr x) = inl x
 
 swap-swap-coprod : {i j : Level} (A : UU i) (B : UU j) →
   ((swap-coprod B A) ∘ (swap-coprod A B)) ~ id
-swap-swap-coprod A B (inl x) = {!!}
-swap-swap-coprod A B (inr x) = {!!}
+swap-swap-coprod A B (inl x) = refl
+swap-swap-coprod A B (inr x) = refl
 
 is-equiv-swap-coprod : {i j : Level} (A : UU i) (B : UU j) →
   is-equiv (swap-coprod A B)
-is-equiv-swap-coprod A B = {!!}
+is-equiv-swap-coprod A B = pair (dpair (swap-coprod B A) (swap-swap-coprod B A)) (dpair (swap-coprod B A) (swap-swap-coprod A B))
 
 swap-prod : {i j : Level} (A : UU i) (B : UU j) → prod A B → prod B A
-swap-prod A B (dpair x y) = {!!}
+swap-prod A B (dpair x y) = pair y x
 
 swap-swap-prod : {i j : Level} (A : UU i) (B : UU j) →
   ((swap-prod B A) ∘ (swap-prod A B)) ~ id
-swap-swap-prod A B (dpair x y) = {!!}
+swap-swap-prod A B (dpair x y) = refl
 
 is-equiv-swap-prod : {i j : Level} (A : UU i) (B : UU j) →
   is-equiv (swap-prod A B)
-is-equiv-swap-prod A B = {!!}
+is-equiv-swap-prod A B = pair (dpair ( swap-prod B A ) (swap-swap-prod B A)) (dpair (swap-prod B A) (swap-swap-prod A B))
 
 -- Exercise 5.9
 ap-retraction : {i j : Level} {A : UU i} {B : UU j}
   (i : A → B) (r : B → A) (H : (r ∘ i) ~ id)
   (x y : A) → Id (i x) (i y) → Id x y
-ap-retraction i r H x y p = {!!}
+ap-retraction i r H x y p = concat _ (concat _ ((htpy-inv H) x)  (ap r p)) (H y)
 
 isretr-ap-retraction : {i j : Level} {A : UU i} {B : UU j}
   (i : A → B) (r : B → A) (H : (r ∘ i) ~ id)
   (x y : A) → ((ap-retraction i r H x y) ∘ (ap i {x} {y})) ~ id
-isretr-ap-retraction i r H x .x refl = {!!}
+isretr-ap-retraction i r H x .x refl = --I'm sure there is a more elegant way to do this... TODO
+  concat _
+    (concat _
+      (ap (λ w → concat _ (concat _ (htpy-inv H x) w) (H x))
+        refl)
+      (ap (λ p → concat _ p (H x)) ( right-unit (htpy-inv H x) )))
+    ((htpy-left-inv H) x )
 
 retr-ap : {i j : Level} {A : UU i} {B : UU j}
   (i : A → B) (r : B → A) (H : (r ∘ i) ~ id)
   (x y : A) → retr (ap i {x} {y})
-retr-ap i r H x y = {!!}
+retr-ap i r H x y = dpair (ap-retraction i r H x y ) (isretr-ap-retraction i r H x y)
 
 -- Exercise 5.10
 Σ-assoc : {i j k : Level} (A : UU i) (B : A → UU j) (C : (Σ A B) → UU k) →
   Σ (Σ A B) C → Σ A (λ x → Σ (B x) (λ y → C (dpair x y)))
-Σ-assoc A B C (dpair (dpair x y) z) = {!!}
+Σ-assoc A B C (dpair (dpair x y) z) = dpair x (dpair y z) 
 
 Σ-assoc' : {i j k : Level} (A : UU i) (B : A → UU j) (C : (Σ A B) → UU k) →
   Σ A (λ x → Σ (B x) (λ y → C (dpair x y))) → Σ (Σ A B) C
-Σ-assoc' A B C (dpair x (dpair y z)) = {!!}
+Σ-assoc' A B C (dpair x (dpair y z)) = dpair (dpair x y) z
 
 Σ-assoc-assoc : {i j k : Level} (A : UU i) (B : A → UU j)
   (C : (Σ A B) → UU k) → ((Σ-assoc' A B C) ∘ (Σ-assoc A B C)) ~ id
-Σ-assoc-assoc A B C (dpair (dpair x y) z) = {!!}
+Σ-assoc-assoc A B C (dpair (dpair x y) z) = refl
 
 Σ-assoc-assoc' : {i j k : Level} (A : UU i) (B : A → UU j)
   (C : (Σ A B) → UU k) → ((Σ-assoc A B C) ∘ (Σ-assoc' A B C)) ~ id
-Σ-assoc-assoc' A B C (dpair x (dpair y z)) = {!!}
+Σ-assoc-assoc' A B C (dpair x (dpair y z)) = refl
 
 is-equiv-Σ-assoc : {i j k : Level} (A : UU i) (B : A → UU j)
   (C : (Σ A B) → UU k) → is-equiv (Σ-assoc A B C)
-is-equiv-Σ-assoc A B C = {!!}
+is-equiv-Σ-assoc A B C = pair (dpair ( Σ-assoc' A B C ) (Σ-assoc-assoc' A B C)) (dpair (Σ-assoc' A B C) (Σ-assoc-assoc A B C))
 
 -- Exercise 5.11
 Σ-swap : {i j k : Level} (A : UU i) (B : UU j) (C : A → B → UU k) →
   Σ A (λ x → Σ B (C x)) → Σ B (λ y → Σ A (λ x → C x y))
-Σ-swap A B C (dpair x (dpair y z)) = {!!}
+Σ-swap A B C (dpair x (dpair y z)) = dpair y (dpair x z)
 
 Σ-swap' : {i j k : Level} (A : UU i) (B : UU j) (C : A → B → UU k) →
   Σ B (λ y → Σ A (λ x → C x y)) → Σ A (λ x → Σ B (C x))
-Σ-swap' A B C = {!!}
+Σ-swap' A B C (dpair x (dpair y z)) = dpair y (dpair x z)
 
 Σ-swap-swap : {i j k : Level} (A : UU i) (B : UU j) (C : A → B → UU k) →
   ((Σ-swap' A B C) ∘ (Σ-swap A B C)) ~ id
-Σ-swap-swap A B C (dpair x (dpair y z)) = {!!}
+Σ-swap-swap A B C (dpair x (dpair y z)) = refl
+
+Σ-swap-swap' : {i j k : Level} (A : UU i) (B : UU j) (C : A → B → UU k) →
+  ((Σ-swap A B C) ∘ (Σ-swap' A B C)) ~ id
+Σ-swap-swap' A B C (dpair x (dpair y z)) = refl
 
 is-equiv-Σ-swap : {i j k : Level} (A : UU i) (B : UU j) (C : A → B → UU k) →
   is-equiv (Σ-swap A B C)
-is-equiv-Σ-swap A B C = {!!}
+is-equiv-Σ-swap A B C = pair ( (dpair ( Σ-swap' A B C ) (Σ-swap-swap' A B C)) ) (dpair ( Σ-swap' A B C ) (Σ-swap-swap A B C))
 
 -- Exercise 5.12
 
 -- Exercise 5.12 (a) simply asks to prove the unit laws. The left unit law holds by judgmental equality.
 
+-- Rennie: this proof was affected by my sloppy definition of add-ℤ which I decided to fix for the next problem
 left-unit-law-add-ℤ : (k : ℤ) → Id (add-ℤ zero-ℤ k) k
-left-unit-law-add-ℤ k = {!!}
+left-unit-law-add-ℤ (inl x) = refl
+left-unit-law-add-ℤ (inr (inl star)) = refl
+left-unit-law-add-ℤ (inr (inr x)) = refl
 
+-- Rennie :this proof was affected by my sloppy definition of add-ℤ which I decided to fix for the next problem
 right-unit-law-add-ℤ : (k : ℤ) → Id (add-ℤ k zero-ℤ) k
-right-unit-law-add-ℤ (inl zero-ℕ) = {!!}
-right-unit-law-add-ℤ (inl (succ-ℕ x)) = {!!}
-right-unit-law-add-ℤ (inr (inl star)) = {!!}
-right-unit-law-add-ℤ (inr (inr zero-ℕ)) = {!!}
-right-unit-law-add-ℤ (inr (inr (succ-ℕ x))) = {!!}
+right-unit-law-add-ℤ (inl zero-ℕ) = refl
+right-unit-law-add-ℤ (inl (succ-ℕ x)) = ap pred-ℤ ( right-unit-law-add-ℤ (inl x) )
+right-unit-law-add-ℤ (inr (inl star)) = refl
+right-unit-law-add-ℤ (inr (inr zero-ℕ)) = refl
+right-unit-law-add-ℤ (inr (inr (succ-ℕ x))) = ap succ-ℤ (right-unit-law-add-ℤ (inr (inr x)))
 
 -- Exercise 5.12 (b) asks to show the left and right predecessor and successor laws. These are helpful to give proofs of associativity and commutativity.
 
+-- Rennie: I dug myself a hole earlier by defining pred-ℤ in that weird, swapping fashion... so I'm going back to change it
 left-predecessor-law-add-ℤ : (x y : ℤ) →
   Id (add-ℤ (pred-ℤ x) y) (pred-ℤ (add-ℤ x y))
-left-predecessor-law-add-ℤ (inl n) y = {!!}
-left-predecessor-law-add-ℤ (inr (inl star)) y = {!!}
-left-predecessor-law-add-ℤ (inr (inr zero-ℕ)) y = {!!}
-left-predecessor-law-add-ℤ (inr (inr (succ-ℕ x))) y = {!!}
+left-predecessor-law-add-ℤ (inl x) y = refl
+left-predecessor-law-add-ℤ (inr (inl star)) y = refl
+left-predecessor-law-add-ℤ (inr (inr zero-ℕ)) y = htpy-inv left-inverse-pred-ℤ y
+left-predecessor-law-add-ℤ (inr (inr (succ-ℕ x))) y = htpy-inv left-inverse-pred-ℤ (add-ℤ (inr (inr x)) y)
 
 right-predecessor-law-add-ℤ : (x y : ℤ) →
   Id (add-ℤ x (pred-ℤ y)) (pred-ℤ (add-ℤ x y))
-right-predecessor-law-add-ℤ (inl zero-ℕ) n = {!!}
-right-predecessor-law-add-ℤ (inl (succ-ℕ m)) n = {!!}
-right-predecessor-law-add-ℤ (inr (inl star)) n = {!!}
-right-predecessor-law-add-ℤ (inr (inr zero-ℕ)) n = {!!}
-right-predecessor-law-add-ℤ (inr (inr (succ-ℕ x))) n = {!!}
+right-predecessor-law-add-ℤ (inl zero-ℕ) n = refl
+right-predecessor-law-add-ℤ (inl (succ-ℕ m)) n = ap pred-ℤ (right-predecessor-law-add-ℤ (inl m) n)
+right-predecessor-law-add-ℤ (inr (inl star)) n = refl
+right-predecessor-law-add-ℤ (inr (inr zero-ℕ)) n = (htpy-concat _ (right-inverse-pred-ℤ) (htpy-inv (left-inverse-pred-ℤ))) n 
+right-predecessor-law-add-ℤ (inr (inr (succ-ℕ x))) n = concat _ (ap succ-ℤ (right-predecessor-law-add-ℤ (inr (inr x)) n)) (concat (add-ℤ (inr (inr x)) n) ((right-inverse-pred-ℤ) (add-ℤ (inr (inr x)) n)) ((htpy-inv left-inverse-pred-ℤ) (add-ℤ (inr (inr x)) n)))
 
 left-successor-law-add-ℤ : (x y : ℤ) →
   Id (add-ℤ (succ-ℤ x) y) (succ-ℤ (add-ℤ x y))
-left-successor-law-add-ℤ (inl zero-ℕ) y = {!!}
-left-successor-law-add-ℤ (inl (succ-ℕ x)) y = {!!}
-left-successor-law-add-ℤ (inr (inl star)) y = {!!}
-left-successor-law-add-ℤ (inr (inr x)) y = {!!}
+left-successor-law-add-ℤ (inl zero-ℕ) y = htpy-inv right-inverse-pred-ℤ y
+left-successor-law-add-ℤ (inl (succ-ℕ x)) y = htpy-inv right-inverse-pred-ℤ (add-ℤ (inl x) y)
+left-successor-law-add-ℤ (inr (inl star)) y = refl
+left-successor-law-add-ℤ (inr (inr x)) y = refl
 
 right-successor-law-add-ℤ : (x y : ℤ) →
   Id (add-ℤ x (succ-ℤ y)) (succ-ℤ (add-ℤ x y))
-right-successor-law-add-ℤ (inl zero-ℕ) y = {!!}
-right-successor-law-add-ℤ (inl (succ-ℕ x)) y = {!!}
-right-successor-law-add-ℤ (inr (inl star)) y = {!!}
-right-successor-law-add-ℤ (inr (inr zero-ℕ)) y = {!!}
-right-successor-law-add-ℤ (inr (inr (succ-ℕ x))) y = {!!}
+right-successor-law-add-ℤ (inl zero-ℕ) y = (htpy-concat _ left-inverse-pred-ℤ (htpy-inv right-inverse-pred-ℤ)) y
+right-successor-law-add-ℤ (inl (succ-ℕ x)) y = concat _ (ap pred-ℤ ( right-successor-law-add-ℤ (inl x) y)) ((htpy-concat _ left-inverse-pred-ℤ (htpy-inv right-inverse-pred-ℤ)) (add-ℤ (inl x) y))
+right-successor-law-add-ℤ (inr (inl star)) y = refl
+right-successor-law-add-ℤ (inr (inr zero-ℕ)) y = refl
+right-successor-law-add-ℤ (inr (inr (succ-ℕ x))) y = ap succ-ℤ (right-successor-law-add-ℤ (inr (inr x)) y)
 
 -- Exercise 5.12 (c) asks to prove associativity and commutativity. Note that we avoid an unwieldy amount of cases by only using induction on the first argument. The resulting proof term is fairly short, and we don't have to present ℤ as a certain quotient of ℕ × ℕ.
 
 associative-add-ℤ : (x y z : ℤ) →
   Id (add-ℤ (add-ℤ x y) z) (add-ℤ x (add-ℤ y z))
-associative-add-ℤ (inl zero-ℕ) y z = {!!}
-associative-add-ℤ (inl (succ-ℕ x)) y z = {!!}
-associative-add-ℤ (inr (inl star)) y z = {!!}
-associative-add-ℤ (inr (inr zero-ℕ)) y z = {!!}
-associative-add-ℤ (inr (inr (succ-ℕ x))) y z = {!!}
+associative-add-ℤ (inl zero-ℕ) y z = left-predecessor-law-add-ℤ y z
+associative-add-ℤ (inl (succ-ℕ x)) y z = concat _ (left-predecessor-law-add-ℤ (add-ℤ (inl x) y) z) (ap pred-ℤ (associative-add-ℤ (inl x) y z))
+associative-add-ℤ (inr (inl star)) y z = refl
+associative-add-ℤ (inr (inr zero-ℕ)) y z = left-successor-law-add-ℤ y z
+associative-add-ℤ (inr (inr (succ-ℕ x))) y z = concat _ (left-successor-law-add-ℤ (add-ℤ (inr (inr x)) y) z) (ap succ-ℤ (associative-add-ℤ (inr (inr x)) y z))
 
 commutative-add-ℤ : (x y : ℤ) → Id (add-ℤ x y) (add-ℤ y x)
-commutative-add-ℤ (inl zero-ℕ) y = {!!}
-commutative-add-ℤ (inl (succ-ℕ x)) y = {!!}
-commutative-add-ℤ (inr (inl star)) y = {!!}
-commutative-add-ℤ (inr (inr zero-ℕ)) y = {!!}
-commutative-add-ℤ (inr (inr (succ-ℕ x))) y = {!!}
+commutative-add-ℤ (inl zero-ℕ) y = concat _ (ap pred-ℤ (inv ( right-unit-law-add-ℤ y ))) (inv (right-predecessor-law-add-ℤ y zero-ℤ))
+commutative-add-ℤ (inl (succ-ℕ x)) y = concat _ (ap pred-ℤ (commutative-add-ℤ (inl x) y)) (inv ( right-predecessor-law-add-ℤ y (inl x ))) 
+commutative-add-ℤ (inr (inl star)) y = inv (right-unit-law-add-ℤ y)
+commutative-add-ℤ (inr (inr zero-ℕ)) y = concat _ (ap succ-ℤ ( inv (right-unit-law-add-ℤ y) )) (inv (right-successor-law-add-ℤ y zero-ℤ))
+commutative-add-ℤ (inr (inr (succ-ℕ x))) y = concat _ (ap succ-ℤ (commutative-add-ℤ (inr (inr x)) y)) (inv ( right-successor-law-add-ℤ y (inr (inr x ))))
 
 -- Exercise 5.12 (d) finally asks to show the inverse laws, completing the verification of the group laws. Combined with associativity and commutativity we conclude that (add-ℤ x) and (λ x → add-ℤ x y) are equivalences, for every x : ℤ and y : ℤ, respectively.
 
 left-inverse-law-add-ℤ : (x : ℤ) → Id (add-ℤ (neg-ℤ x) x) zero-ℤ
-left-inverse-law-add-ℤ (inl zero-ℕ) = {!!}
-left-inverse-law-add-ℤ (inl (succ-ℕ x)) = {!!}
-left-inverse-law-add-ℤ (inr (inl star)) = {!!}
-left-inverse-law-add-ℤ (inr (inr x)) = {!!}
+left-inverse-law-add-ℤ (inl zero-ℕ) = refl
+left-inverse-law-add-ℤ (inl (succ-ℕ x)) = concat _ (ap succ-ℤ (right-predecessor-law-add-ℤ (inr (inr x)) (inl x))) (ap (succ-ℤ ∘ pred-ℤ) ( left-inverse-law-add-ℤ (inl x) ))
+left-inverse-law-add-ℤ (inr (inl star)) = refl
+left-inverse-law-add-ℤ (inr (inr x)) = concat _ (commutative-add-ℤ (inl x) (inr (inr x))) (left-inverse-law-add-ℤ (inl x))
 
 right-inverse-law-add-ℤ : (x : ℤ) → Id (add-ℤ x (neg-ℤ x)) zero-ℤ
-right-inverse-law-add-ℤ x = {!!}
+right-inverse-law-add-ℤ x = concat _ (commutative-add-ℤ x (neg-ℤ x)) (left-inverse-law-add-ℤ x)
 
+-- Rennie: I think these names have right and left swapped ???
 is-equiv-add-ℤ-right : (x : ℤ) → is-equiv (add-ℤ x)
-is-equiv-add-ℤ-right x = {!!}
+is-equiv-add-ℤ-right x = pair (dpair (add-ℤ (neg-ℤ x)) (λ a → (concat _ ( inv (associative-add-ℤ x (neg-ℤ x) a) ) (ap (λ w → add-ℤ w a) (right-inverse-law-add-ℤ x))))) (dpair (add-ℤ (neg-ℤ x))  λ a → (concat _ ( inv (associative-add-ℤ (neg-ℤ x) x a) ) (ap (λ w → add-ℤ w a) (left-inverse-law-add-ℤ x))))
 
 is-equiv-add-ℤ-left : (y : ℤ) → is-equiv (λ x → add-ℤ x y)
-is-equiv-add-ℤ-left y = {!!}
+is-equiv-add-ℤ-left y = pair (dpair (λ w → add-ℤ w (neg-ℤ y)) λ a → ( concat _ (associative-add-ℤ a (neg-ℤ y) y) (concat _( ap (add-ℤ a) ( left-inverse-law-add-ℤ y ) ) (right-unit-law-add-ℤ a))) ) (dpair (λ w → add-ℤ w (neg-ℤ y)) λ a → (concat _ (associative-add-ℤ a y (neg-ℤ y)) (concat _ (ap (add-ℤ a) (right-inverse-law-add-ℤ y) ) (right-unit-law-add-ℤ a))))
 
 \end{code}
