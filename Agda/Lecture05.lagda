@@ -291,7 +291,11 @@ is-equiv-htpy H (dpair (dpair gs issec) (dpair gr isretr)) =
 section-comp : {i j k : Level} {A : UU i} {B : UU j} {X : UU k}
   (f : A → X) (g : B → X) (h : A → B) (H : f ~ (g ∘ h)) →
   sec h → sec f → sec g
-section-comp f g h H (dpair sh sh-issec) (dpair sf sf-issec) = dpair (h ∘ sf) (htpy-concat _ (htpy-right-whisk (htpy-inv H) sf) sf-issec)
+section-comp f g h H (dpair sh sh-issec) (dpair sf sf-issec) =
+  dpair (h ∘ sf)
+    (htpy-concat _
+      (htpy-right-whisk (htpy-inv H) sf)
+      sf-issec)
 
 section-comp' : {i j k : Level} {A : UU i} {B : UU j} {X : UU k}
   (f : A → X) (g : B → X) (h : A → B) (H : f ~ (g ∘ h)) →
@@ -299,7 +303,9 @@ section-comp' : {i j k : Level} {A : UU i} {B : UU j} {X : UU k}
 section-comp' f g h H (dpair sh sh-issec) (dpair sg sg-issec) =
   dpair
     (sh ∘ sg)
-    (htpy-concat _ (htpy-right-whisk H (sh ∘ sg)) (htpy-concat _ (htpy-left-whisk g (htpy-right-whisk sh-issec sg) ) (sg-issec)))
+    (htpy-concat _
+      (htpy-right-whisk H (sh ∘ sg)) (htpy-concat _ (htpy-left-whisk g (htpy-right-whisk sh-issec sg) )
+      (sg-issec)))
 
 retraction-comp : {i j k : Level} {A : UU i} {B : UU j} {X : UU k}
   (f : A → X) (g : B → X) (h : A → B) (H : f ~ (g ∘ h)) →
@@ -330,14 +336,20 @@ is-equiv-comp f g h H (dpair hsec hretr) (dpair gsec gretr )=
 is-equiv-left-factor : {i j k : Level} {A : UU i} {B : UU j} {X : UU k}
   (f : A → X) (g : B → X) (h : A → B) (H : f ~ (g ∘ h)) →
   is-equiv f → is-equiv h → is-equiv g
-is-equiv-left-factor f g h H f-is-equiv h-is-equiv = is-equiv-comp g f (inv-is-equiv h-is-equiv) (htpy-concat _ (htpy-left-whisk g (htpy-inv (pr1 (pr2 (is-invertible-is-equiv h-is-equiv))))) (htpy-concat _ (λ x → refl) (htpy-right-whisk (htpy-inv H) (inv-is-equiv h-is-equiv)))) (is-equiv-inv-is-equiv h-is-equiv) f-is-equiv
+is-equiv-left-factor f g h H f-is-equiv h-is-equiv =
+  let h-is-inv = is-invertible-is-equiv h-is-equiv in
+  is-equiv-comp g f
+    (inv-is-equiv h-is-equiv)
+    (htpy-concat _
+      (htpy-left-whisk g (htpy-inv (pr1 (pr2 h-is-inv))))
+      (htpy-right-whisk (htpy-inv H) (inv-is-equiv h-is-equiv)))
+    (is-equiv-inv-is-equiv h-is-equiv)
+    f-is-equiv
 
 is-equiv-right-factor : {i j k : Level} {A : UU i} {B : UU j} {X : UU k}
   (f : A → X) (g : B → X) (h : A → B) (H : f ~ (g ∘ h)) →
   is-equiv g → is-equiv f → is-equiv h
 is-equiv-right-factor f g h H g-is-equiv f-is-equiv = is-equiv-comp h (inv-is-equiv g-is-equiv) f (htpy-concat _ (htpy-right-whisk (htpy-inv (pr2 (pr2 (is-invertible-is-equiv g-is-equiv)))) h) (htpy-concat _ (λ x → refl) (htpy-left-whisk (inv-is-equiv g-is-equiv) (htpy-inv H)))) f-is-equiv (is-equiv-inv-is-equiv g-is-equiv)
-  -- ( dpair (dpair sg sg-issec) (dpair rg rg-isretr))
-  -- ( dpair (dpair sf sf-issec) (dpair rf rf-isretr)) = {!!}
 
 -- Exercise 5.6
 neg-𝟚 : bool → bool
@@ -413,11 +425,8 @@ isretr-ap-retraction : {i j : Level} {A : UU i} {B : UU j}
   (x y : A) → ((ap-retraction i r H x y) ∘ (ap i {x} {y})) ~ id
 isretr-ap-retraction i r H x .x refl = --I'm sure there is a more elegant way to do this... TODO
   concat _
-    (concat _
-      (ap (λ w → concat _ (concat _ (htpy-inv H x) w) (H x))
-        refl)
-      (ap (λ p → concat _ p (H x)) ( right-unit (htpy-inv H x) )))
-    ((htpy-left-inv H) x )
+      (ap (λ p → concat _ p (H x)) ( right-unit (htpy-inv H x) ))
+      ((htpy-left-inv H) x )
 
 retr-ap : {i j : Level} {A : UU i} {B : UU j}
   (i : A → B) (r : B → A) (H : (r ∘ i) ~ id)

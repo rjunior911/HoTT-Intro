@@ -112,7 +112,6 @@ htpy-nat : {i j : Level} {A : UU i} {B : UU j} {f g : A → B} (H : f ~ g)
   Id (concat _ (H x) (ap g p)) (concat _ (ap f p) (H y))
 htpy-nat H refl = right-unit (H _)
 
--- Should left-unwhisk and right-unwhisk be moved to Lecture 4? That's where they most naturally fit.
 left-unwhisk : {i : Level} {A : UU i} {x y z : A} (p : Id x y) {q r : Id y z} →
   Id (concat _ p q) (concat _ p r) → Id q r
 left-unwhisk refl s = concat _ (inv (left-unit _)) (concat _ s (left-unit _))
@@ -204,139 +203,172 @@ is-contr-total-path' A a = is-contr-map-is-equiv (is-equiv-id _) a
 -- Exercise 6.1
 is-prop-is-contr : {i : Level} {A : UU i} → is-contr A →
   (x y : A) → is-contr (Id x y)
-is-prop-is-contr {i} {A} C = ?
+is-prop-is-contr {i} {A} C x y =  sing-ind-is-contr A C (λ a → is-contr (Id a y)) (dpair (contraction C y) (ind-Id (center C) (λ z path-a-to-z → Id (contraction C z) path-a-to-z) (coh-contraction C) y)) x
 
 -- Exercise 6.2
 is-contr-retract-of : {i j : Level} {A : UU i} (B : UU j) →
   A retract-of B → is-contr B → is-contr A
-is-contr-retract-of B A-retr-B B-is-contr = ?
+is-contr-retract-of B (dpair f (dpair f-retr f-is-retr)) (dpair B-center B-contraction) =
+  let A-center = (f-retr B-center) in
+    dpair A-center λ a → concat _ (ap f-retr (B-contraction (f a))) (f-is-retr a)
 
 -- Exercise 6.3
 is-equiv-const-is-contr : {i : Level} {A : UU i} →
   is-contr A → is-equiv (const A unit star)
-is-equiv-const-is-contr {i} {A} H = ?
+is-equiv-const-is-contr {i} {A} (dpair A-center A-contr) = pair (dpair (const unit A A-center) (λ a → contraction is-contr-unit a)) (dpair (const unit A A-center) A-contr)
 
 is-contr-is-equiv-const : {i : Level} {A : UU i} →
   is-equiv (const A unit star) → is-contr A
-is-contr-is-equiv-const is-equiv-const = ?
+is-contr-is-equiv-const (dpair (dpair const-sec sec-id) (dpair const-retr retr-id)) = dpair (const-retr star) λ a → retr-id a
 
+-- TODO (Rennie): make more elegant
 is-contr-is-equiv : {i j : Level} {A : UU i} (B : UU j) (f : A → B) →
   is-equiv f → is-contr B → is-contr A
-is-contr-is-equiv B f Ef C = ?
+is-contr-is-equiv B f Ef C = 
+  let b = center C
+      f-inv = pr1 (is-invertible-is-equiv Ef)
+      f-left-inv-id = pr2 (pr2 ( is-invertible-is-equiv Ef ))
+      a = f-inv b
+  in
+    dpair a (htpy-concat _ (htpy-left-whisk f-inv (htpy-right-whisk (contraction C) f)) f-left-inv-id)
 
 is-contr-is-equiv' : {i j : Level} (A : UU i) {B : UU j} (f : A → B) →
   is-equiv f → is-contr A → is-contr B
-is-contr-is-equiv' A f Ef C = ?
+is-contr-is-equiv' A f Ef C = 
+  let
+    a = center C
+    f-inv = pr1 (is-invertible-is-equiv Ef)
+    f-right-inv-id = pr1 (pr2 (is-invertible-is-equiv Ef))
+    b = f a
+  in
+    dpair b (htpy-concat _ (htpy-left-whisk f (htpy-right-whisk (contraction C) f-inv)) f-right-inv-id)
+
 
 
 is-equiv-is-contr : {i j : Level} {A : UU i} {B : UU j} (f : A → B) →
   is-contr A → is-contr B → is-equiv f
-is-equiv-is-contr {i} {j} {A} {B} f CA CB = ?
+is-equiv-is-contr {i} {j} {A} {B} f CA CB =
+  let
+    A-to-pt-is-equiv = ( is-equiv-const-is-contr CA)
+    pt-to-B = inv-is-equiv (is-equiv-const-is-contr CB)
+    pt-to-B-is-equiv = is-equiv-inv-is-equiv (is-equiv-const-is-contr CB)
+  in 
+    is-equiv-comp f pt-to-B (const A unit star) (λ x → concat _ (inv ((contraction CB) (f x))) ((contraction CB) (pt-to-B star))) A-to-pt-is-equiv pt-to-B-is-equiv
 
 -- Exercise 6.4
 left-unit-law-Σ-map : {i j : Level} {C : UU i} (B : C → UU j)
   (H : is-contr C) → B (center H) → Σ C B
-left-unit-law-Σ-map B H y = ?
+left-unit-law-Σ-map B H y = dpair (center H) y
 
 left-unit-law-Σ-map-conv : {i j : Level} {C : UU i} (B : C → UU j)
   (H : is-contr C) → Σ C B → B (center H)
-left-unit-law-Σ-map-conv B H = ?
+left-unit-law-Σ-map-conv B H (dpair x y) = inv-tr B ((contraction H) x) y
 
 left-inverse-left-unit-law-Σ-map-conv : {i j : Level} {C : UU i}
   (B : C → UU j) (H : is-contr C) →
   ((left-unit-law-Σ-map-conv B H) ∘ (left-unit-law-Σ-map B H)) ~ id
-left-inverse-left-unit-law-Σ-map-conv B H y = ?
+-- left-inverse-left-unit-law-Σ-map-conv B H y = inv {!pair-eq  ? ?!}
+left-inverse-left-unit-law-Σ-map-conv B H y = ap (λ w → inv-tr B w y) (coh-contraction H)
 
 right-inverse-left-unit-law-Σ-map-conv : {i j : Level} {C : UU i}
   (B : C → UU j) (H : is-contr C) →
   ((left-unit-law-Σ-map B H) ∘ (left-unit-law-Σ-map-conv B H)) ~ id
-right-inverse-left-unit-law-Σ-map-conv B H = ?
+right-inverse-left-unit-law-Σ-map-conv B H (dpair x y) =
+  eq-pair
+    (dpair
+      ((contraction H) x)
+      ((right-inv-inv-tr B (contraction H x)) y))
 
 is-equiv-left-unit-law-Σ-map : {i j : Level} {C : UU i}
   (B : C → UU j) (H : is-contr C) → is-equiv (left-unit-law-Σ-map B H)
-is-equiv-left-unit-law-Σ-map B H = ?
+is-equiv-left-unit-law-Σ-map B H = pair (dpair (left-unit-law-Σ-map-conv B H) (right-inverse-left-unit-law-Σ-map-conv B H)) (dpair (left-unit-law-Σ-map-conv B H) (left-inverse-left-unit-law-Σ-map-conv B H))
 
 left-unit-law-Σ : {i j : Level} {C : UU i} (B : C → UU j) (H : is-contr C) →
   B (center H) ≃ Σ C B
-left-unit-law-Σ B H = ?
+left-unit-law-Σ B H = dpair (left-unit-law-Σ-map B H) (is-equiv-left-unit-law-Σ-map B H)
 
 -- Exercise 6.5
 tr-fiber : {i j : Level} {A : UU i} {B : UU j}
   (f : A → B) {x y : B} (p : Id x y) (a : A) (q : Id (f a) x) →
   Id (tr (fib f) p (dpair a q)) (dpair a (concat x q p))
-tr-fiber f p a q = ?
+tr-fiber f refl a q = ap (dpair a) (inv (right-unit q) )
+-- or just
+-- tr-fiber f refl a refl = refl
 
 -- Exercise 6.6
 Σ-fib-to-domain : {i j : Level} {A : UU i} {B : UU j} (f : A → B ) →
   (Σ B (fib f)) → A
-Σ-fib-to-domain f fib-non-empty = ?
+Σ-fib-to-domain f (dpair b (dpair a p)) = a
 
 triangle-Σ-fib-to-domain : {i j : Level} {A : UU i} {B : UU j} (f : A → B ) →
   pr1 ~ (f ∘ (Σ-fib-to-domain f))
-triangle-Σ-fib-to-domain f = ?
+triangle-Σ-fib-to-domain f (dpair b (dpair a p))= inv p
 
 domain-to-Σ-fib : {i j : Level} {A : UU i} {B : UU j} (f : A → B) →
   A → Σ B (fib f)
-domain-to-Σ-fib f x = ?
+domain-to-Σ-fib f a = dpair (f a) (dpair a refl)
 
 left-inverse-domain-to-Σ-fib : {i j : Level} {A : UU i} {B : UU j}
   (f : A → B ) → ((domain-to-Σ-fib f) ∘ (Σ-fib-to-domain f)) ~ id
-left-inverse-domain-to-Σ-fib f = ?
+left-inverse-domain-to-Σ-fib f (dpair .(f a) (dpair a refl)) = refl
 
 right-inverse-domain-to-Σ-fib : {i j : Level} {A : UU i} {B : UU j}
   (f : A → B ) → ((Σ-fib-to-domain f) ∘ (domain-to-Σ-fib f)) ~ id
-right-inverse-domain-to-Σ-fib f = ?
+right-inverse-domain-to-Σ-fib f a = refl
 
 is-equiv-Σ-fib-to-domain : {i j : Level} {A : UU i} {B : UU j}
   (f : A → B ) → is-equiv (Σ-fib-to-domain f)
-is-equiv-Σ-fib-to-domain f = ?
+is-equiv-Σ-fib-to-domain f = pair (dpair (domain-to-Σ-fib f ) (right-inverse-domain-to-Σ-fib f)) (dpair (domain-to-Σ-fib f) (left-inverse-domain-to-Σ-fib f))
 
 equiv-Σ-fib-to-domain : {i j : Level} {A : UU i} {B : UU j}
   (f : A → B ) → Σ B (fib f) ≃ A
-equiv-Σ-fib-to-domain f = ?
+equiv-Σ-fib-to-domain f = dpair (Σ-fib-to-domain f) (is-equiv-Σ-fib-to-domain f)
 
 -- Exercise 6.7
 is-contr-left-factor-prod : {i j : Level} (A : UU i) (B : UU j) →
   is-contr (A × B) → is-contr A
-is-contr-left-factor-prod A B H = ?
+is-contr-left-factor-prod A B H = is-contr-retract-of (A × B) (dpair (λ a → (pair a (pr2 (center H)))) (dpair pr1 λ x → refl)) H
+-- is-contr-retract-of : {i j : Level} {A : UU i} (B : UU j) →
+-- A retract-of B → is-contr B → is-contr A
 
 is-contr-right-factor-prod : {i j : Level} (A : UU i) (B : UU j) →
   is-contr (A × B) → is-contr B
-is-contr-right-factor-prod A B H = ?
+is-contr-right-factor-prod A B H = is-contr-retract-of (A × B) (dpair (λ b → (pair (pr1 (center H)) b)) (dpair pr2 (λ x → refl))) H
 
 -- Exercise 6.8
 -- Given any family B over A, there is a map from the fiber of the projection map (pr1 : Σ A B → A) to the type (B a), i.e. the fiber of B at a. In this exercise we define this map, and show that it is an equivalence, for every a : A.
 
 fib-fam-fib-pr1 : {i j : Level} {A : UU i} (B : A → UU j)
   (a : A) → fib (pr1 {i} {j} {A} {B}) a → B a
-fib-fam-fib-pr1 B a pr1-fib = ?
+fib-fam-fib-pr1 B a (dpair (dpair .a x₂) refl) = x₂
 
 fib-pr1-fib-fam : {i j : Level} {A : UU i} (B : A → UU j)
   (a : A) → B a → fib (pr1 {i} {j} {A} {B}) a
-fib-pr1-fib-fam B a b = ?
+fib-pr1-fib-fam B a b = dpair (dpair a b) refl
 
 left-inverse-fib-pr1-fib-fam : {i j : Level} {A : UU i} (B : A → UU j)
   (a : A) → ((fib-pr1-fib-fam B a) ∘ (fib-fam-fib-pr1 B a)) ~ id
-left-inverse-fib-pr1-fib-fam B a = ?
+left-inverse-fib-pr1-fib-fam B a (dpair (dpair .a x₂) refl) = refl
 
 right-inverse-fib-pr1-fib-fam : {i j : Level} {A : UU i} (B : A → UU j)
   (a : A) → ((fib-fam-fib-pr1 B a) ∘ (fib-pr1-fib-fam B a)) ~ id
-right-inverse-fib-pr1-fib-fam B a = ?
+right-inverse-fib-pr1-fib-fam B a y = refl
 
 is-equiv-fib-fam-fib-pr1 : {i j : Level} {A : UU i} (B : A → UU j)
   (a : A) → is-equiv (fib-fam-fib-pr1 B a)
-is-equiv-fib-fam-fib-pr1 B a = ?
+is-equiv-fib-fam-fib-pr1 B a = pair (dpair (fib-pr1-fib-fam B a) (right-inverse-fib-pr1-fib-fam B a)) (dpair (fib-pr1-fib-fam B a) (left-inverse-fib-pr1-fib-fam B a))
 
 is-equiv-pr1-is-contr : {i j : Level} {A : UU i} (B : A → UU j) →
   ((a : A) → is-contr (B a)) → is-equiv (pr1 {i} {j} {A} {B})
-is-equiv-pr1-is-contr B H = ?
+is-equiv-pr1-is-contr B H = pair (dpair (λ a → dpair a (center (H a))) (λ w → refl)) (dpair (λ a → dpair a (center (H a))) λ a → eq-pair (dpair refl ((contraction (H (pr1 a))) (pr2 a))))
 
 is-contr-is-equiv-pr1 : {i j : Level} {A : UU i} (B : A → UU j) →
   (is-equiv (pr1 {i} {j} {A} {B})) → ((a : A) → is-contr (B a))
-is-contr-is-equiv-pr1 B H a = ?
+is-contr-is-equiv-pr1 B pr1-is-equiv a = is-contr-is-equiv' (fib pr1 a) (fib-fam-fib-pr1 B a) (is-equiv-fib-fam-fib-pr1 B a) (is-contr-map-is-equiv pr1-is-equiv a)
+-- is-contr-is-equiv-pr1 B (dpair (dpair x x₁) (dpair x₂ x₃)) a = dpair (fib-fam-fib-pr1 B a (dpair (x a) ((x₁ a)) )) λ y → {!!}
 
 right-unit-law-Σ : {i j : Level} {A : UU i} (B : A → UU j) →
   ((a : A) → is-contr (B a)) → (Σ A B) ≃ A
-right-unit-law-Σ B H = ?
+right-unit-law-Σ B H = dpair pr1 (is-equiv-pr1-is-contr B H)
 
 \end{code}
