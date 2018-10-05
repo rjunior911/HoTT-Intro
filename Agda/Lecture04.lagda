@@ -205,22 +205,5 @@ pentagon : {i : Level} {A : UU i} {x1 x2 x3 x4 x5 : A}
 pentagon refl refl r s = refl
 
 
---Exercise 4.8
--- we just make an infix operator for concat to make the pentagon definition readable...
-_∙_ : {i : Level} {A : UU i} {x y z : A} → Id x y → Id y z → Id x z
-p ∙ q = concat _ p q
-pentagon : {i : Level} {A : UU i} {x1 x2 x3 x4 x5 : A}
-  (p : Id x1 x2) (q : Id x2 x3)
-  (r : Id x3 x4) (s : Id x4 x5) →
-  let
-    α1 = inv ( ap (λ t → t ∙ s) (assoc p q r))
-    α2 = inv ( assoc p ( q ∙ r) s)
-    α3 = inv ( ap (λ t → p ∙ t) (assoc q r s))
-    α4 = inv ( assoc (p ∙ q) r s)
-    α5 = inv ( assoc p q (r ∙ s))
-  in
-    Id (α1 ∙ (α2 ∙ α3)) (α4 ∙ α5)
-pentagon p q r s = {!!}
-
 
 \end{code}
